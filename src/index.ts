@@ -40,16 +40,15 @@ log("Loading command files...");
 export const commandsDict: { [key: string]: Command } = { };
 export const commandsByCategories: { [key: string]: Command[] } = { };
 function scanForCommandFiles(fullDir: string) {
-    for (const filename of readdirSync(fullDir)) {
+    readdirSync(fullDir).forEach((filename) => {
+    // for (const filename in readdirSync(fullDir)) {
         // For every file and directory under the commands directory:
-        if (filename.endsWith("commands.js") || filename.endsWith("categories.js")) {
-            return;
-        } // Both files are NOT commands
+        if (filename.endsWith("commands.js") || filename.endsWith("categories.js")) return;  // Both files are NOT commands
         const file = fullDir + "/" + filename;  // Get full path
-        if (statSync(file).isDirectory())
+        if (statSync(file).isDirectory()) {
             scanForCommandFiles(file);
             // TODO: limit to one level only
-        else {
+        } else {
             const command = require(file);
             log("* Loaded " + file);
             commandsDict[command.nativeText.name] = command;
@@ -60,8 +59,9 @@ function scanForCommandFiles(fullDir: string) {
                 commandsByCategories[category] = [];
             commandsByCategories[category].push(command);
         }
-    }
+    });
 }
+
 scanForCommandFiles(join(__dirname, "commands")); // Project's sub-directory for command files
 log("Loaded commands.");
 
