@@ -6,7 +6,7 @@ import { rmSync, writeFileSync, mkdirSync } from "fs";
 import { join } from "path";
 
 const DATABASE = "whatsapp-api";
-const COLLECTION = ".wweb_auth";
+const COLLECTION = "auth_files";
 
 class WrappedData {
     public filename: string;
