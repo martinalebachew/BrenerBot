@@ -2,6 +2,7 @@
     "botPrefix": "!",
     "countryCode": "US",
     "phoneNumber": "2133734253",
+
     "mongoDB": {
         "username": "heroku",
         "password": "password1",
