@@ -2,7 +2,7 @@
 build
 
 # configuration file
-config.json
+src/config.json
 
 # MacOS files
 .DS_Store

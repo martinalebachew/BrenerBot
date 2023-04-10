@@ -6,17 +6,18 @@ import { Command, GroupChatPermissions, PrivateChatPermissions } from "./command
 import { dirToCategories } from "./commands/categories";
 import { log } from "./utils/log";
 import { WhatsAppConnection } from "./whatsapp-api/client";
-import { MessageBase, TextMessage } from "./whatsapp-api/message";
+import { TextMessage } from "./whatsapp-api/message";
 import { UserAddress} from "./whatsapp-api/address";
-import { parsePhoneNumber } from "libphonenumber-js";
+import { CountryCode, parsePhoneNumber} from "libphonenumber-js";
 import { GroupParticipant } from "@adiwajshing/baileys";
+import { readdirSync, statSync } from "fs";
 
 
 // Phase 0: Load configuration file
-const config  = require("../config.json");
+import config from "./config.json";
 const BOT_PREFIX = config.botPrefix;  // Prefix for all bot commands
 
-const phoneNumber = parsePhoneNumber(config.phoneNumber, config.countryCode);
+const phoneNumber = parsePhoneNumber(config.phoneNumber, config.countryCode as CountryCode);
 const OWNER_ADDRESS = new UserAddress(parseInt(phoneNumber.countryCallingCode + phoneNumber.nationalNumber));  // Bot owner's address
 
 
@@ -27,12 +28,11 @@ log("Loading command files...");
 export const commandsDict: { [key: string]: Command } = { };
 export const commandsByCategories: { [key: string]: Command[] } = { }
 ;(function scanForCommandFiles(fullDir: string) {
-    const filesystem = require("fs");
-    filesystem.readdirSync(fullDir).forEach((filename: string) => {
+    readdirSync(fullDir).forEach((filename: string) => {
         // For every file and directory under the commands directory:
         if (!filename.endsWith("commands.js") && !filename.endsWith("categories.js")) {  // Both files are NOT commands
             const file = fullDir + "/" + filename;  // Get full path
-            if (filesystem.statSync(file).isDirectory())
+            if (statSync(file).isDirectory())
                 scanForCommandFiles(file);
                 // TODO: limit to one level only
             else {
@@ -53,7 +53,7 @@ log("Loaded command.");
 
 // Phase 2: Connect to WhatsApp
 const whatsapp = new WhatsAppConnection();
-whatsapp.authenticate().then(() => { whatsapp.setCallback(messageCallback); });
+whatsapp.authenticate().then(async () => { await whatsapp.setCallback(messageCallback); });
 
 async function messageCallback(message: TextMessage, type: string ) {
     /* Pre-processing: This function is called only on messages
