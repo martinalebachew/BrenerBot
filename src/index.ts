@@ -11,19 +11,29 @@ import { UserAddress} from "./whatsapp-api/address";
 import { CountryCode, parsePhoneNumber} from "libphonenumber-js";
 import { GroupParticipant } from "@adiwajshing/baileys";
 import { readdirSync, statSync } from "fs";
+import { pino } from "pino";
+
+// Create global pino logger
+export const logger = pino({
+    level: "debug"
+});
+
+const LOG_HEADER = "---> ";
+const LOG_SPACER = "     ";
 
 
 // Phase 0: Load configuration file
+logger.info(LOG_HEADER + "Loading configuration...");
 import config from "./config.json";
 const BOT_PREFIX = config.botPrefix;  // Prefix for all bot commands
 
 const phoneNumber = parsePhoneNumber(config.phoneNumber, config.countryCode as CountryCode);
 const OWNER_ADDRESS = new UserAddress(parseInt(phoneNumber.countryCallingCode + phoneNumber.nationalNumber));  // Bot owner's address
-
+logger.info(LOG_SPACER + "Loaded Configuration.");
 
 // Phase 1: Load commands
 // Load command files and extract commands
-log("Loading command files...");
+logger.info(LOG_HEADER + "Loading command files...");
 
 export const commandsDict: { [key: string]: Command } = { };
 export const commandsByCategories: { [key: string]: Command[] } = { }
@@ -37,7 +47,7 @@ export const commandsByCategories: { [key: string]: Command[] } = { }
                 // TODO: limit to one level only
             else {
                 const command = require(file);
-                log("* Loaded " + file);
+                logger.debug(LOG_SPACER + "* Loaded " + file);
                 commandsDict[command.nativeText.name] = command;
 
                 const category = dirToCategories[basename(fullDir)];
@@ -49,34 +59,57 @@ export const commandsByCategories: { [key: string]: Command[] } = { }
         }
     });
 })(join(__dirname, "commands"));  // Project's sub-directory for command files
-log("Loaded command.");
+logger.info(LOG_SPACER + "Loaded commands.");
 
 // Phase 2: Connect to WhatsApp
 const whatsapp = new WhatsAppConnection();
 whatsapp.authenticate().then(async () => { await whatsapp.setCallback(messageCallback); });
 
-async function messageCallback(message: TextMessage, type: string ) {
+async function messageCallback(message: TextMessage, type: string) {
     /* Pre-processing: This function is called only on messages
     of a supported type and have been sent while the bot is online. */
 
+    const messageLogger = logger.child({ message: message });
+
+    messageLogger.trace(LOG_HEADER + "Analysing message...");
+
     // Processing Stage 1: Obtain command
     const content = message.text;
-    if (!content.startsWith(BOT_PREFIX)) return;
+    if (!content.startsWith(BOT_PREFIX)) {
+        messageLogger.trace(LOG_SPACER + `Message doesn't start with configured bot prefix: "${config.botPrefix}". Aborting.`);
+        return;
+    } else messageLogger.trace(LOG_SPACER + `Message starts with configured bot prefix: "${config.botPrefix}". Continuing...`);
 
     const args = content.substring(BOT_PREFIX.length).split(" ");
     const commandKey = args.shift();
-    if (!commandKey) return;
+    if (!commandKey) {
+        messageLogger.trace(LOG_SPACER + "Message doesn't contain a command key directly following the prefix. Aborting.");
+        return;
+    } else messageLogger.trace(LOG_SPACER + `Message contains a command key directly following the prefix: "${commandKey}". Continuing...`);
 
     const commandObj = commandsDict[commandKey];
-    if (!commandObj) return;
+    if (!commandObj) {
+        messageLogger.trace(LOG_SPACER + "Failed to find a command matching the key specified above. Aborting.");
+        return;
+    } messageLogger.trace(LOG_SPACER + "Found a command matching the key specified above. Continuing...");
 
     // Processing Stage 2: Check message type
-    if (!commandObj.requestTypes.includes(type)) return;
+    if (!commandObj.requestTypes.includes(type)) {
+        messageLogger.trace(LOG_SPACER + `Message type "${type}" is not one of the command's supported types: ${commandObj.requestTypes}. Aborting.`);
+        return;
+    } messageLogger.trace(LOG_SPACER + `Message type "${type}" is one of the command's supported types: ${commandObj.requestTypes}. Continuing...`);
 
     // Processing Stage 3: Verify permissions
     if (!message.inGroup) {  // Private chat
         const senderPerms = (message.author.equals(OWNER_ADDRESS)) ? PrivateChatPermissions.Owner : PrivateChatPermissions.Everyone;
-        if (commandObj.permissions.privateChat < senderPerms) return;
+        messageLogger.trace(LOG_SPACER + `Analyzed author permissions as Private Chat @ ${PrivateChatPermissions[senderPerms]}.`);
+
+        const commandPerms = commandObj.permissions.privateChat;
+        if (commandPerms < senderPerms) {
+            messageLogger.trace(LOG_SPACER + `Author permissions are insufficient, this command requires Private Chat @ ${PrivateChatPermissions[commandPerms]}. Aborting.`);
+            return;
+        } messageLogger.trace(LOG_SPACER + `Author permissions are sufficient, this command requires Private Chat @ ${PrivateChatPermissions[commandPerms]}. Continuing...`);
+
     } else {  // Group chat
         let senderPerms;
         if (message.author.equals(OWNER_ADDRESS)) senderPerms = GroupChatPermissions.Owner;
@@ -90,10 +123,17 @@ async function messageCallback(message: TextMessage, type: string ) {
             senderPerms = isAdmin ? GroupChatPermissions.Admin : GroupChatPermissions.Everyone;
         }
 
-        if (commandObj.permissions.groupChat < senderPerms) return;
+        messageLogger.trace(LOG_SPACER + `Analyzed author permissions as Group Chat @ ${GroupChatPermissions[senderPerms]}.`);
+
+        const commandPerms = commandObj.permissions.groupChat;
+        if (commandPerms < senderPerms) {
+            messageLogger.trace(LOG_SPACER + `Author permissions are insufficient, this command requires Group Chat @ ${GroupChatPermissions[commandPerms]}. Aborting.`);
+            return;
+        } messageLogger.trace(LOG_SPACER + `Author permissions are sufficient, this command requires Group Chat @ ${GroupChatPermissions[commandPerms]}. Continuing...`);
     }
 
     // Processing Stage 4: Execute command
-    log("---> Executing command", commandObj.nativeText.name, "from", message.author.serialized);
+    messageLogger.info(LOG_HEADER + `Executing command ${commandKey}...`);
     await commandObj.execute(whatsapp, message, type, args);
+    messageLogger.trace(LOG_SPACER + `Completed execution.`);
 }
