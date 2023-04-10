@@ -1,13 +1,13 @@
 // shutdown.ts
 // (C) Martin Alebachew, 2023
 
-import { Command, GroupChatPermissions, PrivateChatPermissions } from "../commands"
-import { WhatsAppConnection } from "../../whatsapp-api/client"
-import { MessageBase } from "../../whatsapp-api/message"
+import { Command, GroupChatPermissions, PrivateChatPermissions } from "../commands";
+import { WhatsAppConnection } from "../../whatsapp-api/client";
+import { MessageBase } from "../../whatsapp-api/message";
 
-const NATIVE_SHUTDOWN_MESSAGE = "להתראות 👋"
+const NATIVE_SHUTDOWN_MESSAGE = "להתראות 👋";
 
-let command: Command = {
+const command: Command = {
     requestTypes: ["conversation"],
 
     permissions: {
@@ -21,10 +21,10 @@ let command: Command = {
     },
 
     async execute(whatsapp: WhatsAppConnection, message: MessageBase, type: string, args: string[]) {
-        if (args.length) return
-        await whatsapp.reply(message, NATIVE_SHUTDOWN_MESSAGE)
-        setTimeout(process.exit, 3000)  // Wait for message to flush
+        if (args.length) return;
+        await whatsapp.reply(message, NATIVE_SHUTDOWN_MESSAGE);
+        setTimeout(process.exit, 3000);  // Wait for message to flush
     }
-}
+};
 
-module.exports = command
+module.exports = command;

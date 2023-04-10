@@ -1,14 +1,14 @@
 // help.ts
 // (C) Martin Alebachew, 2023
 
-import { Command, GroupChatPermissions, PrivateChatPermissions } from "../commands"
+import { Command, GroupChatPermissions, PrivateChatPermissions } from "../commands";
 import { commandsDict } from "../../index";
-import { WhatsAppConnection } from "../../whatsapp-api/client"
-import { MessageBase } from "../../whatsapp-api/message"
+import { WhatsAppConnection } from "../../whatsapp-api/client";
+import { MessageBase } from "../../whatsapp-api/message";
 
-const NATIVE_HELP_HEADER = "*היי, אני ברנרבוט 👋*\nהנה הפקודות שלי:\n\n"
+const NATIVE_HELP_HEADER = "*היי, אני ברנרבוט 👋*\nהנה הפקודות שלי:\n\n";
 
-let command: Command = {
+const command: Command = {
     requestTypes: ["conversation"],
 
     permissions: {
@@ -22,14 +22,14 @@ let command: Command = {
     },
 
     async execute(whatsapp: WhatsAppConnection, message: MessageBase, type: string, args: string[]) {
-        if (args.length) return
-        let helpMsg = NATIVE_HELP_HEADER
-        for (let commandName in commandsDict) {
-            helpMsg += "* !" + commandName + "\n"
+        if (args.length) return;
+        let helpMsg = NATIVE_HELP_HEADER;
+        for (const commandName in commandsDict) {
+            helpMsg += "* !" + commandName + "\n";
         }
 
-        await whatsapp.reply(message, helpMsg)
+        await whatsapp.reply(message, helpMsg);
     }
-}
+};
 
-module.exports = command
+module.exports = command;
