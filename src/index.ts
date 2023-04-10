@@ -7,7 +7,7 @@ import { dirToCategories } from "./commands/categories";
 import { log } from "./utils/log";
 import { WhatsAppConnection } from "./whatsapp-api/client";
 import { TextMessage } from "./whatsapp-api/message";
-import { UserAddress} from "./whatsapp-api/address";
+import { UserAddress } from "./whatsapp-api/address";
 import { parsePhoneNumber } from "libphonenumber-js";
 import { Client } from "./mongodb-api/client";
 import { existsSync, readdirSync, statSync } from "fs";

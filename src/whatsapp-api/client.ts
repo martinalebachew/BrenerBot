@@ -1,7 +1,8 @@
 // client.ts
 // (C) Martin Alebachew, 2023
 
-import { Client, LocalAuth, Message } from "whatsapp-web.js";
+import { Client, Message } from "whatsapp-web.js";
+import { MongoAuth } from "./mongo-auth";
 import { MessageBase, TextMessage } from "./message";
 import { Client as MongoClient } from "../mongodb-api/client";
 import qrcode from "qrcode-terminal";
@@ -11,7 +12,7 @@ export class WhatsAppConnection {
 
     constructor() {
         this.client = new Client({
-            authStrategy: new LocalAuth(),
+            authStrategy: new MongoAuth(),
             puppeteer: {
                 args: ["--no-sandbox"]
             }
