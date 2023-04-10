@@ -4,7 +4,7 @@
   "description": "WhatsApp Utility Bot",
   "main": "build/index.js",
   "scripts": {
-    "start": "npm build && node .",
+    "start": "node .",
     "build": "rm -r build & npx tsc"
   },
   "repository": {
