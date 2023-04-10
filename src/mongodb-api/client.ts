@@ -10,6 +10,7 @@ interface IWrappedData extends WithId<Document> {
     filename: string,
     contentBase64: string
 }
+
 class WrappedData implements IWrappedData {
     public _id: ObjectId;
     public filename: string;
@@ -19,6 +20,21 @@ class WrappedData implements IWrappedData {
         this._id = new ObjectId();
         this.filename = filename;
         this.contentBase64 = contentBase64;
+    }
+}
+
+interface IWrappedArray extends WithId<Document> {
+    _id: ObjectId,
+    wrappedArray: WrappedData[]
+}
+
+class WrappedArray implements IWrappedArray {
+    public _id: ObjectId;
+    public wrappedArray: WrappedData[];
+
+    constructor(wrappedArray: WrappedData[]) {
+        this._id = new ObjectId();
+        this.wrappedArray = wrappedArray;
     }
 }
 
@@ -39,27 +55,28 @@ export class Client {
 
         const database = this.connection.db("persistent-storage");
         const collection = database.collection(folder);
-        const wrappedArray = await this.fetchDirectory(folder);
-        await collection.insertOne({ wrappedArray });
+        const wrappedList = await this.fetchDirectory(folder);
+        const wrappedArray = new WrappedArray(wrappedList);
+        await collection.insertOne(wrappedArray);
 
         console.log("Successfully uploaded authentication files.\n");
     }
 
     private async fetchDirectory(folder: string) {
-        const wrappedArray: WrappedData[] = [];
+        let wrappedList: WrappedData[] = [];
         const files = readdirSync("./" + folder);
         for (const filename of files) {
             const relativePath = folder + "/" + filename;
-            if (!statSync(relativePath).isDirectory()) wrappedArray.push(await this.fetchFile(relativePath));
-            else wrappedArray.concat(await this.fetchDirectory(relativePath));
+            if (!statSync(relativePath).isDirectory()) wrappedList.push(await this.fetchFile(relativePath));
+            else wrappedList = wrappedList.concat(await this.fetchDirectory(relativePath));
         }
 
         if (files.length === 0) {  // Empty directory
             const relativePath = folder + "/" + "@";
-            wrappedArray.push(await this.fetchFile(relativePath, true));
+            wrappedList.push(await this.fetchFile(relativePath, true));
         }
 
-        return wrappedArray;
+        return wrappedList;
     }
 
     public async fetchFile(relativePath: string, empty = false) {
