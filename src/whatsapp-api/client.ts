@@ -10,7 +10,10 @@ export class WhatsAppConnection {
 
     constructor() {
         this.client = new Client({
-            authStrategy: new LocalAuth()
+            authStrategy: new LocalAuth(),
+            puppeteer: {
+                args: ["--no-sandbox"]
+            }
         });
 
         this.client.on("qr", (qr) => {

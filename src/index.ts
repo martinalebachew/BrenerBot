@@ -14,6 +14,13 @@ import { existsSync, readdirSync, statSync } from "fs";
 import { createServer } from "http";
 import { MessageTypes } from "whatsapp-web.js";
 
+// Heroku requirement: Dispatch HTTP listener
+createServer(function (req, res) {
+    res.writeHead(200);  // OK response code
+    res.end();
+}).listen(process.env.PORT);
+
+
 // Phase 0: Load configuration file
 export let config: any;
 if (existsSync(join(__dirname,"../config.json"))) {
@@ -24,13 +31,6 @@ if (existsSync(join(__dirname,"../config.json"))) {
 const BOT_PREFIX = config?.botPrefix || process.env.BOT_PREFIX;  // Prefix for all bot commands
 const phoneNumber = parsePhoneNumber(config?.phoneNumber || process.env.PHONE_NUMBER, config?.countryCode || process.env.COUNTRY_CODE);
 const OWNER_ADDRESS = new UserAddress(phoneNumber.countryCallingCode + phoneNumber.nationalNumber);  // Bot owner's address
-
-
-// Phase 0: Dispatch HTTP listener
-createServer(function (req, res) {
-    res.writeHead(200);  // OK response code
-    res.end();
-}).listen(process.env.PORT);
 
 
 // Phase 1: Load commands
