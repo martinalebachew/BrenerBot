@@ -1,8 +1,7 @@
 // client.ts
 // (C) Martin Alebachew, 2023
 
-import { Client, Message } from "whatsapp-web.js";
-import { MongoAuth } from "./mongo-auth";
+import { Client, Message, LocalAuth } from "whatsapp-web.js";
 import { MessageBase, TextMessage } from "./message";
 import { Client as MongoClient } from "../mongodb-api/client";
 import qrcode from "qrcode-terminal";
@@ -12,7 +11,9 @@ export class WhatsAppConnection {
 
     constructor() {
         this.client = new Client({
-            authStrategy: new MongoAuth(),
+            authStrategy: new LocalAuth({
+                dataPath: "wwebjs_auth"  // Omitted default dot to match MongoDB collection naming restrictions
+            }),
             puppeteer: {
                 args: ["--no-sandbox"]
             }
@@ -28,8 +29,7 @@ export class WhatsAppConnection {
     }
 
     async serve(mongoClient: MongoClient, messageCallback: (message: TextMessage) => Promise<void>) {
-        // await mongoClient.downloadAll(".wweb_auth");
-        // TODO: add creds hook here / auth strategy
+        await mongoClient.downloadDirectory("wwebjs_auth");  // Restore session
 
         this.client.on("message", (message: Message) => {  // Handles only messages sent while BrenerBot is up
             const parsed = MessageBase.parse(message);

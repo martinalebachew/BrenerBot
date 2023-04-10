@@ -21,7 +21,7 @@ createServer(function (req, res) {
 }).listen(process.env.PORT);
 
 
-// Phase 0: Load configuration file
+// Phase 0: Load configuration
 export let config: any;
 if (existsSync(join(__dirname,"../config.json"))) {
     log("Loading configuration from config.json...");
@@ -31,6 +31,9 @@ if (existsSync(join(__dirname,"../config.json"))) {
 const BOT_PREFIX = config?.botPrefix || process.env.BOT_PREFIX;  // Prefix for all bot commands
 const phoneNumber = parsePhoneNumber(config?.phoneNumber || process.env.PHONE_NUMBER, config?.countryCode || process.env.COUNTRY_CODE);
 const OWNER_ADDRESS = new UserAddress(phoneNumber.countryCallingCode + phoneNumber.nationalNumber);  // Bot owner's address
+const username = config?.mongoDB?.username || process.env.MONGODB_USERNAME;
+const password = config?.mongoDB?.password || process.env.MONGODB_PASSWORD;
+const endpoint = config?.mongoDB?.endpoint || process.env.MONGODB_ENDPOINT;
 
 
 // Phase 1: Load commands
@@ -66,10 +69,6 @@ scanForCommandFiles(join(__dirname, "commands")); // Project's sub-directory for
 log("Loaded commands.");
 
 // Phase 2: Connect to WhatsApp
-const username = config?.mongoDB?.username || process.env.MONGODB_USERNAME;
-const password = config?.mongoDB?.password || process.env.MONGODB_PASSWORD;
-const endpoint = config?.mongoDB?.endpoint || process.env.MONGODB_ENDPOINT;
-
 const mongodb = new Client(username, password, endpoint);
 const whatsapp = new WhatsAppConnection();
 
