@@ -135,5 +135,5 @@ async function messageCallback(message: TextMessage, type: string) {
     // Processing Stage 4: Execute command
     messageLogger.info(LOG_HEADER + `Executing command ${commandKey}...`);
     await commandObj.execute(whatsapp, message, type, args);
-    messageLogger.trace(LOG_SPACER + `Completed execution.`);
+    messageLogger.trace(LOG_SPACER + "Completed execution.");
 }
