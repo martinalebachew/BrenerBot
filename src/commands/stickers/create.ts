@@ -1,15 +1,16 @@
 // create.ts
 // (C) Martin Alebachew, 2023
 
+import { MessageTypes, MessageMedia } from "whatsapp-web.js";
 import { Command, GroupChatPermissions, PrivateChatPermissions } from "../commands";
 import { WhatsAppConnection } from "../../whatsapp-api/client";
 import { MessageBase } from "../../whatsapp-api/message";
 import { CanvasRenderingContext2D, createCanvas, registerFont } from "canvas";
-import { Sticker, createSticker, StickerTypes } from "wa-sticker-formatter";
 
 const STICKER_NAME = "BrenerBot";
 const STICKER_AUTHOR = "@martinalebachew on GitHub";
 
+const IMAGE_MIME_TYPE = "image/png";
 const IMAGE_SIZE_PX = 800;
 const IMAGE_PADDING_PX = 160;
 
@@ -73,7 +74,7 @@ function splitLinesIntoSquare(text: string, ctx: CanvasRenderingContext2D) {
     // Note: longestLine, squareWidth, squareHeight, squareDiff, squarePrevDiff are now OUTDATED
 }
 
-async function textToImageBuffer(text: string) {
+async function textToImageBase64(text: string) {
     text = text.replace(/\n+/g, " ");  // Strip line breaks
     text = text.trim();  // Trim whitespaces
     text = text.replace(/ {2,}/g, " ");  // Replace multiple spaces with one space
@@ -116,20 +117,21 @@ async function textToImageBuffer(text: string) {
         ctx.fillText(lines[i].content, x, y + i * (fontSize * LINE_HEIGHT_MULTIPLIER));
     }
 
-    const pngBuffer = canvas.toBuffer("image/png");
-    const sticker = new Sticker(pngBuffer, {
-        id: "martinalebachew/BrenerBot",
-        pack: STICKER_NAME,
-        author: STICKER_AUTHOR,
-        categories: []  // Sticker emojis
-    });
-
-    // Return WebP buffer with sticker metadata
-    return await sticker.toBuffer();
+    // Return png buffer, encoded in base64
+    return canvas.toBuffer(IMAGE_MIME_TYPE).toString("base64");
+    // const sticker = new Sticker(pngBuffer, {
+    //     id: "martinalebachew/BrenerBot",
+    //     pack: STICKER_NAME,
+    //     author: STICKER_AUTHOR,
+    //     categories: []  // Sticker emojis
+    // });
+    //
+    // // Return WebP buffer with sticker metadata
+    // return await sticker.toBuffer();
 }
 
 const command: Command = {
-    requestTypes: ["conversation"],
+    requestTypes: [MessageTypes.TEXT],
     permissions: {
         groupChat: GroupChatPermissions.Everyone,
         privateChat: PrivateChatPermissions.Everyone
@@ -141,14 +143,17 @@ const command: Command = {
     },
 
     async execute(whatsapp: WhatsAppConnection, message: MessageBase, type: string, args: string[]) {
-        // if (args.length && type == MessageTypes.TEXT) {
-        //     media = new MessageMedia(IMAGE_MIME_TYPE, textToImageBase64(args.join(" ")))
+        if (args.length && type == MessageTypes.TEXT) {
+            const media = new MessageMedia(IMAGE_MIME_TYPE, await textToImageBase64(args.join(" ")));
+            await message.raw.reply(media, undefined, {
+                sendMediaAsSticker: true,
+                stickerName: STICKER_NAME,
+                stickerAuthor: STICKER_AUTHOR
+            });
+        }
         // } else if (!args.length && (message.type == MessageTypes.IMAGE || message.type == MessageTypes.VIDEO)) {
         //     media = await message.downloadMedia()
         // } else return
-
-        await whatsapp.stickerReply(message, await textToImageBuffer(args.join(" ")));
-        // TODO: change name and author
     }
 };
 

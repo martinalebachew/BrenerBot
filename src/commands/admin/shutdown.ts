@@ -1,6 +1,7 @@
 // shutdown.ts
 // (C) Martin Alebachew, 2023
 
+import { MessageTypes } from "whatsapp-web.js";
 import { Command, GroupChatPermissions, PrivateChatPermissions } from "../commands";
 import { WhatsAppConnection } from "../../whatsapp-api/client";
 import { MessageBase } from "../../whatsapp-api/message";
@@ -8,7 +9,7 @@ import { MessageBase } from "../../whatsapp-api/message";
 const NATIVE_SHUTDOWN_MESSAGE = "להתראות 👋";
 
 const command: Command = {
-    requestTypes: ["conversation"],
+    requestTypes: [MessageTypes.TEXT],
 
     permissions: {
         groupChat: GroupChatPermissions.Owner,
@@ -22,7 +23,7 @@ const command: Command = {
 
     async execute(whatsapp: WhatsAppConnection, message: MessageBase, type: string, args: string[]) {
         if (args.length) return;
-        await whatsapp.reply(message, NATIVE_SHUTDOWN_MESSAGE);
+        await message.raw.reply(NATIVE_SHUTDOWN_MESSAGE);
         setTimeout(process.exit, 3000);  // Wait for message to flush
     }
 };

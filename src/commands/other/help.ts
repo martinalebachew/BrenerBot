@@ -1,6 +1,7 @@
 // help.ts
 // (C) Martin Alebachew, 2023
 
+import { MessageTypes } from "whatsapp-web.js";
 import { Command, GroupChatPermissions, PrivateChatPermissions } from "../commands";
 import { commandsDict } from "../../index";
 import { WhatsAppConnection } from "../../whatsapp-api/client";
@@ -9,7 +10,7 @@ import { MessageBase } from "../../whatsapp-api/message";
 const NATIVE_HELP_HEADER = "*היי, אני ברנרבוט 👋*\nהנה הפקודות שלי:\n\n";
 
 const command: Command = {
-    requestTypes: ["conversation"],
+    requestTypes: [MessageTypes.TEXT],
 
     permissions: {
         groupChat: GroupChatPermissions.Everyone,
@@ -28,7 +29,7 @@ const command: Command = {
             helpMsg += "* !" + commandName + "\n";
         }
 
-        await whatsapp.reply(message, helpMsg);
+        await message.raw.reply(helpMsg);
     }
 };
 

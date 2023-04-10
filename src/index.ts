@@ -6,13 +6,13 @@ import { Command, GroupChatPermissions, PrivateChatPermissions } from "./command
 import { dirToCategories } from "./commands/categories";
 import { log } from "./utils/log";
 import { WhatsAppConnection } from "./whatsapp-api/client";
-import { MessageBase, TextMessage } from "./whatsapp-api/message";
+import { TextMessage } from "./whatsapp-api/message";
 import { UserAddress} from "./whatsapp-api/address";
 import { parsePhoneNumber } from "libphonenumber-js";
-import { GroupParticipant } from "@adiwajshing/baileys";
 import { Client } from "./mongodb-api/client";
 import { existsSync, readdirSync, statSync } from "fs";
 import { createServer } from "http";
+import { MessageTypes } from "whatsapp-web.js";
 
 // Phase 0: Load configuration file
 export let config: any;
@@ -72,9 +72,8 @@ const endpoint = config?.mongoDB?.endpoint || process.env.MONGODB_ENDPOINT;
 
 const mongodb = new Client(username, password, endpoint);
 const whatsapp = new WhatsAppConnection();
-whatsapp.authenticate(mongodb).then(() => { whatsapp.setCallback(messageCallback); });
 
-async function messageCallback(message: TextMessage, type: string ) {
+async function messageCallback(message: TextMessage) {
     /* Pre-processing: This function is called only on messages
     of a supported type and have been sent while the bot is online. */
 
@@ -90,6 +89,7 @@ async function messageCallback(message: TextMessage, type: string ) {
     if (!commandObj) return;
 
     // Processing Stage 2: Check message type
+    const type = MessageTypes.TEXT;  // TODO: FIX TEMP WORKAROUND
     if (!commandObj.requestTypes.includes(type)) return;
 
     // Processing Stage 3: Verify permissions
@@ -117,3 +117,5 @@ async function messageCallback(message: TextMessage, type: string ) {
     log("---> Executing command", commandObj.nativeText.name, "from", message.author.serialized);
     await commandObj.execute(whatsapp, message, type, args);
 }
+
+whatsapp.serve(mongodb, messageCallback);

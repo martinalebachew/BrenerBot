@@ -2,7 +2,7 @@
 // (C) Martin Alebachew, 2023
 
 export enum Server {
-    User = "@s.whatsapp.net",  // c.us in selenium-based and puppeteer-based libraries
+    User = "@c.us",  // c.us in selenium-based and puppeteer-based libraries, @s.whatsapp.net in websocket-based libraries
     Group = "@g.us"
 }
 
