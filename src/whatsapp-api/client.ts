@@ -4,7 +4,7 @@
 import { Client, LocalAuth, Message } from "whatsapp-web.js";
 import { MessageBase, TextMessage } from "./message";
 import { Client as MongoClient } from "../mongodb-api/client";
-import { generate } from "qrcode-terminal";
+import qrcode from "qrcode-terminal";
 
 export class WhatsAppConnection {
     private client: Client;
@@ -18,7 +18,7 @@ export class WhatsAppConnection {
         });
 
         this.client.on("qr", (qr) => {
-            generate(qr, {small: true});
+            qrcode.generate(qr, { small: true });
         });
 
         this.client.on("ready", () => {
