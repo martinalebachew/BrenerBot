@@ -1,19 +1,19 @@
 // create.ts
 // (C) Martin Alebachew, 2023
 
-import { Command, GroupChatPermissions, PrivateChatPermissions } from '../commands';
-import { WhatsAppConnection } from '../../whatsapp-api/client';
-import { MessageBase } from '../../whatsapp-api/message';
-import { CanvasRenderingContext2D, createCanvas, registerFont } from 'canvas';
-import { Sticker, createSticker, StickerTypes } from 'wa-sticker-formatter';
+import { Command, GroupChatPermissions, PrivateChatPermissions } from "../commands";
+import { WhatsAppConnection } from "../../whatsapp-api/client";
+import { MessageBase } from "../../whatsapp-api/message";
+import { CanvasRenderingContext2D, createCanvas, registerFont } from "canvas";
+import { Sticker, createSticker, StickerTypes } from "wa-sticker-formatter";
 
-const STICKER_NAME = 'BrenerBot';
-const STICKER_AUTHOR = '@martinalebachew on GitHub';
+const STICKER_NAME = "BrenerBot";
+const STICKER_AUTHOR = "@martinalebachew on GitHub";
 
 const IMAGE_SIZE_PX = 800;
 const IMAGE_PADDING_PX = 160;
 
-const STICKER_BG_COLORS = ['#63AF6F', '#6398AF', '#8463AF', '#AF6395', '#ADAF63'];
+const STICKER_BG_COLORS = ["#63AF6F", "#6398AF", "#8463AF", "#AF6395", "#ADAF63"];
 
 const TESTING_FONT_SIZE = 20;
 const LINE_HEIGHT_MULTIPLIER = 0.92;
@@ -34,13 +34,13 @@ function longestLineCallback(prev: Line, curr: Line) {
 
 function splitIntoLines(words: string[], breakFactor: number, ctx: CanvasRenderingContext2D) {
     if (!breakFactor) {  // Handle zero breakFactor by returning one line
-        const lineText = words.join(' ');
+        const lineText = words.join(" ");
         return [new Line(lineText, ctx.measureText(lineText).width)];
     }
 
     const lines = [];
     for (let i = 0; i < words.length; i += breakFactor) {
-        const lineText = words.slice(i, i + breakFactor).join(' ');
+        const lineText = words.slice(i, i + breakFactor).join(" ");
         lines.push(new Line(lineText, ctx.measureText(lineText).width));
     }
 
@@ -49,7 +49,7 @@ function splitIntoLines(words: string[], breakFactor: number, ctx: CanvasRenderi
 
 function splitLinesIntoSquare(text: string, ctx: CanvasRenderingContext2D) {
     let breakFactor = 0;  // Defines at which frequency line breaks should be added
-    const words = text.split(' ');
+    const words = text.split(" ");
     let lines: Line[];
 
     let longestLine: Line;
@@ -74,14 +74,14 @@ function splitLinesIntoSquare(text: string, ctx: CanvasRenderingContext2D) {
 }
 
 async function textToImageBuffer(text: string) {
-    text = text.replace(/\n+/g, ' ');  // Strip line breaks
+    text = text.replace(/\n+/g, " ");  // Strip line breaks
     text = text.trim();  // Trim whitespaces
     text = text.replace(/ {2,}/g, " ");  // Replace multiple spaces with one space
 
     // Set up font and canvas
-    registerFont('fonts/Assistant/Bold.ttf', { family: 'StickerFont' });
+    registerFont("fonts/Assistant/Bold.ttf", { family: "StickerFont" });
     const canvas = createCanvas(IMAGE_SIZE_PX, IMAGE_SIZE_PX);
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
 
     // Set up background color
     ctx.fillStyle = STICKER_BG_COLORS[~~(Math.random() * STICKER_BG_COLORS.length)];
@@ -106,9 +106,9 @@ async function textToImageBuffer(text: string) {
     } while (textWidth <= IMAGE_SIZE_PX - IMAGE_PADDING_PX && textHeight <= IMAGE_SIZE_PX - IMAGE_PADDING_PX);
 
     // Insert text into image center
-    ctx.fillStyle = 'white';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
+    ctx.fillStyle = "white";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
 
     const x = canvas.width / 2;
     const y = (canvas.height - (lines.length - 1) * (fontSize * LINE_HEIGHT_MULTIPLIER)) / 2;
@@ -116,9 +116,9 @@ async function textToImageBuffer(text: string) {
         ctx.fillText(lines[i].content, x, y + i * (fontSize * LINE_HEIGHT_MULTIPLIER));
     }
 
-    const pngBuffer = canvas.toBuffer('image/png');
+    const pngBuffer = canvas.toBuffer("image/png");
     const sticker = new Sticker(pngBuffer, {
-        id: 'martinalebachew/BrenerBot',
+        id: "martinalebachew/BrenerBot",
         pack: STICKER_NAME,
         author: STICKER_AUTHOR,
         categories: []  // Sticker emojis
@@ -129,15 +129,15 @@ async function textToImageBuffer(text: string) {
 }
 
 const command: Command = {
-    requestTypes: ['conversation'],
+    requestTypes: ["conversation"],
     permissions: {
         groupChat: GroupChatPermissions.Everyone,
         privateChat: PrivateChatPermissions.Everyone
     },
 
     nativeText: {
-        name: 'סטיקר',
-        description: ''
+        name: "סטיקר",
+        description: ""
     },
 
     async execute(whatsapp: WhatsAppConnection, message: MessageBase, type: string, args: string[]) {
@@ -147,7 +147,7 @@ const command: Command = {
         //     media = await message.downloadMedia()
         // } else return
 
-        await whatsapp.stickerReply(message, await textToImageBuffer(args.join(' ')));
+        await whatsapp.stickerReply(message, await textToImageBuffer(args.join(" ")));
         // TODO: change name and author
     }
 };
