@@ -77,10 +77,7 @@ However, it is possible to use them and configure MongoDB. To learn more, read t
 
 ### Target platform doesn't have persistent storage?
 
-It is possible to configure BrenerBot for platforms that don't support persistent storage, by using environment variables and MongoDB.
-
-1. Create a MongoDB account for free and a new cluster for BrenerBot's data. This cluster should be used by one BrenerBot instance only.
-2. Set the following environment variables:
+It is possible to configure BrenerBot for platforms that don't support persistent storage, by using environment variables and MongoDB. Create a MongoDB account for free and add a new cluster for BrenerBot's data. This cluster should be used by one BrenerBot instance only. Then, set the following environment variables:
    - `BOT_PREFIX` - identical to `botPrefix` in _config.json_. See usage above.
    - `PHONE_NUMBER` - identical to `phoneNumber` in _config.json_. See usage above.
    - `COUNTRY_CODE` - identical to `countryCode` in _config.json_. See usage above.
@@ -115,39 +112,7 @@ And that's it!
 
 BrenerBot is build with a high level of modularity in mind. You can add your own commands by creating command files in a subdirectory under 'src/commands' and
 conforming with the command structure, as specified in 'src/commands/commands.ts'. Make sure to include this subdirectory in 'src/commands/categories.ts' and define the corresponding category name in native language.
-
-A command file should look like this:
-
-```typescript
-import {
-  Command,
-  GroupChatPermissions,
-  PrivateChatPermissions,
-} from "../commands";
-import { Client, Message } from "whatsapp-web.js";
-
-let command: Command = {
-  permissions: {
-    groupChat: GroupChatPermissions.Everyone,
-    privateChat: PrivateChatPermissions.Owner,
-  },
-
-  nativeText: {
-    name: "ping",
-    description: "pongs!",
-    category: "misc",
-  },
-
-  async execute(client: Client, msg: Message, args: string[]) {
-    if (args.length) return;
-    await msg.reply("pong! 🏓");
-  },
-};
-
-module.exports = command;
-```
-
-Share your commands with us :)
+Dont forget to share your commands with us! Hell, even create a pull request 🤠
 
 ### Running BrenerBot on Heroku
 
