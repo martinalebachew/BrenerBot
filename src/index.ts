@@ -124,12 +124,12 @@ async function messageCallback(message: TextMessage) {
 }
 
 export async function terminateGracefully(signal: string) {  // Required for auth persistence
-    console.log(`[${signal}] Terminating...`);
+    console.log(`\n[${signal}] Terminating...`);
     processNewCommands = false;
 
     // Allow 5 seconds for processing current commands
     setInterval(async () => {
-        await whatsapp.destroy();  // Close WhatsApp connection to flush auth files
+        await whatsapp.destroy().catch(_ => _);  // Close WhatsApp connection to flush auth files
         if (authDownloadCompleted) await mongodb.uploadDirectory("wwebjs_auth");  // Upload auth files
         await mongodb.closeConnection();
         server.close();
@@ -144,5 +144,5 @@ process.on("SIGTERM", () => terminateGracefully("SIGTERM"));  // `kill` command
 
 mongodb.downloadDirectory("wwebjs_auth").then(() => {  // Restore session
     authDownloadCompleted = true;
-    whatsapp.serve(messageCallback);
+    whatsapp.serve(messageCallback).catch(_ => _);  // Catch is a temporary workaround, errors might be thrown after calling destroy().
 });
