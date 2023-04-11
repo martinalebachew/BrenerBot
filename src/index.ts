@@ -128,7 +128,7 @@ export async function terminateGracefully(signal: string) {  // Required for aut
     processNewCommands = false;
 
     // Allow 5 seconds for processing current commands
-    setInterval(async () => {
+    setTimeout(async () => {
         await whatsapp.destroy().catch(_ => _);  // Close WhatsApp connection to flush auth files
         if (authDownloadCompleted) await mongodb.uploadDirectory("wwebjs_auth");  // Upload auth files
         await mongodb.closeConnection();
