@@ -1,6 +1,6 @@
 # BrenerBot 🤖
 
-An easy to use WhatsApp utility bot, written in TypeScript.
+An easy-to-use WhatsApp utility bot, written in TypeScript.
 Designed mainly for group chats!
 
 > **Warning**
@@ -39,7 +39,7 @@ BrenerBot requires the following software:
 - NodeJS
 - ffmpeg
 
-After installing the requirements above and adding them to the PATH environment variable, you can use the following command to install all of the required libraries:
+After installing the requirements above and adding them to the PATH environment variable, you can use the following command to install all the required libraries:
 
 ```
 npm install
@@ -67,7 +67,7 @@ _config.json_
 
 BrenerBot will respond only to messages that start with the `botPrefix`, and exactly follow the command syntax.
 
-`countryCode` and `phoneNumber` are used to specify the owner's phone number. This is a privilleged user and has additional command-running permissions.
+`countryCode` and `phoneNumber` are used to specify the owner's phone number. This is a privileged user and has additional command-running permissions.
 
 `countryCode` should contain the owner's country code as a two-letters string (ISO 3166-1 Alpha-2). [Click here](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#Officially_assigned_code_elements) for a complete list.
 
@@ -115,8 +115,8 @@ And that's it!
 
 ### Optional: Add Commands!
 
-BrenerBot is build with a high level of modularity in mind. You can add your own commands by creating command files in a sub-directory under 'src/commands' and
-conforming with the command structure, as specified in 'src/commands/commands.ts'. Make sure to include this sub-directory in 'src/commands/categories.ts' and define the corresponding category name in native language.
+BrenerBot is build with a high level of modularity in mind. You can add your own commands by creating command files in a subdirectory under 'src/commands' and
+conforming with the command structure, as specified in 'src/commands/commands.ts'. Make sure to include this subdirectory in 'src/commands/categories.ts' and define the corresponding category name in native language.
 
 A command file should look like this:
 
