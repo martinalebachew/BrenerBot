@@ -5,6 +5,8 @@ import { MongoClient, ObjectId } from "mongodb";
 import type { WithId, Document } from "mongodb";
 import { rmSync, writeFileSync, mkdirSync, readdirSync, statSync, readFileSync } from "fs";
 
+const DATABASE = "persistent-disk";
+
 interface IWrappedData extends WithId<Document> {
     _id: ObjectId,
     filename: string,
@@ -38,7 +40,7 @@ export class Client {
     public async uploadDirectory(folder: string) {
         console.log("\nUploading authentication files...");
 
-        const database = this.connection.db("persistent-storage");
+        const database = this.connection.db(DATABASE);
         const collection = database.collection(folder);
         await collection.drop().catch(_ => _);  // Clear all previous data
 
@@ -91,7 +93,7 @@ export class Client {
         console.log("\nDownloading authentication files...");
         rmSync(folder, { recursive: true, force: true });
 
-        const database = this.connection.db("persistent-disk");
+        const database = this.connection.db(DATABASE);
         const collection = database.collection(folder);
         const documents = await collection.find({ });
         await documents.forEach((document) => {
