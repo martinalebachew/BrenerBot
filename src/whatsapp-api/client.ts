@@ -39,6 +39,10 @@ export class WhatsAppConnection {
         await this.client.initialize();
     }
 
+    async destroy() {
+        await this.client.destroy();
+    }
+
     // async fetchGroupMetadata(address: GroupAddress) {
     //     const allGroupsMetadata = await this.client.groupFetchAllParticipating();
     //     return allGroupsMetadata[address.serialized];

@@ -117,4 +117,16 @@ async function messageCallback(message: TextMessage) {
     await commandObj.execute(whatsapp, message, type, args);
 }
 
+export async function cleanShutdown() {  // Required for auth persistence
+    console.log("Terminating...");
+    await whatsapp.destroy();  // Close WhatsApp connection to flush auth files
+    await mongodb.uploadDirectory("wwebjs_auth");  // Upload auth files
+    await mongodb.closeConnection();
+    process.exit(0);
+}
+
+process.on("SIGINT", cleanShutdown);   // CTRL+C
+process.on("SIGQUIT", cleanShutdown);  // Keyboard quit
+process.on("SIGTERM", cleanShutdown);  // `kill` command
+
 whatsapp.serve(mongodb, messageCallback);
