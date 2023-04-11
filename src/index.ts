@@ -124,11 +124,17 @@ async function messageCallback(message: TextMessage) {
 export async function terminateGracefully(signal: string) {  // Required for auth persistence
     console.log(`[${signal}] Terminating...`);
     processNewCommands = false;
-    server.close();
-    await whatsapp.destroy();  // Close WhatsApp connection to flush auth files
-    await mongodb.uploadDirectory("wwebjs_auth");  // Upload auth files
-    await mongodb.closeConnection();
-    process.exit(0);
+
+    // Allow 5 seconds for processing current commands
+    setInterval(async () => {
+        server.close();
+        await whatsapp.destroy();  // Close WhatsApp connection to flush auth files
+        await mongodb.uploadDirectory("wwebjs_auth");  // Upload auth files
+        await mongodb.closeConnection();
+        console.log("Finished.");
+        process.exit(0);
+    }, 5000);
+
 }
 
 process.on("SIGINT", () => terminateGracefully("SIGINT"));   // CTRL+C

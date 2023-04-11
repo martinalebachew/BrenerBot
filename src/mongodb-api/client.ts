@@ -40,7 +40,7 @@ export class Client {
 
         const database = this.connection.db("persistent-storage");
         const collection = database.collection(folder);
-        await collection.drop().catch();  // Clear all previous data
+        await collection.drop().catch(_ => _);  // Clear all previous data
 
         const wrappedList = await this.fetchDirectory(folder);
         await collection.insertMany(wrappedList);
@@ -91,7 +91,7 @@ export class Client {
         console.log("\nDownloading authentication files...");
         rmSync(folder, { recursive: true, force: true });
 
-        const database = this.connection.db("persistent-storage");
+        const database = this.connection.db("persistent-disk");
         const collection = database.collection(folder);
         const documents = await collection.find({ });
         await documents.forEach((document) => {
