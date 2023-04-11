@@ -40,7 +40,7 @@ export class Client {
 
         const database = this.connection.db("persistent-storage");
         const collection = database.collection(folder);
-        await collection.drop();  // Clear all previous data
+        await collection.drop().catch();  // Clear all previous data
 
         const wrappedList = await this.fetchDirectory(folder);
         await collection.insertMany(wrappedList);
