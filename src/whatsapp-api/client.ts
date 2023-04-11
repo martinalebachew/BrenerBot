@@ -3,7 +3,6 @@
 
 import { Client, Message, LocalAuth } from "whatsapp-web.js";
 import { MessageBase, TextMessage } from "./message";
-import { Client as MongoClient } from "../mongodb-api/client";
 import qrcode from "qrcode-terminal";
 
 export class WhatsAppConnection {
@@ -30,9 +29,7 @@ export class WhatsAppConnection {
         });
     }
 
-    async serve(mongoClient: MongoClient, messageCallback: (message: TextMessage) => Promise<void>) {
-        await mongoClient.downloadDirectory("wwebjs_auth");  // Restore session
-
+    async serve(messageCallback: (message: TextMessage) => Promise<void>) {
         this.client.on("message", (message: Message) => {  // Handles only messages sent while BrenerBot is up
             const parsed = MessageBase.parse(message);
             if (parsed) messageCallback(parsed as TextMessage);

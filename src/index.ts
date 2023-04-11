@@ -20,7 +20,9 @@ const server = createServer(function (req, res) {
     res.end();
 }).listen(process.env.PORT);
 
-let processNewCommands = true;  // Used for graceful termination
+// Graceful termination state booleans
+let processNewCommands = true;
+let authDownloadCompleted = false;
 
 
 // Phase 0: Load configuration
@@ -127,10 +129,10 @@ export async function terminateGracefully(signal: string) {  // Required for aut
 
     // Allow 5 seconds for processing current commands
     setInterval(async () => {
-        server.close();
         await whatsapp.destroy();  // Close WhatsApp connection to flush auth files
-        await mongodb.uploadDirectory("wwebjs_auth");  // Upload auth files
+        if (authDownloadCompleted) await mongodb.uploadDirectory("wwebjs_auth");  // Upload auth files
         await mongodb.closeConnection();
+        server.close();
         console.log("Finished.");
         process.exit(0);
     }, 5000);
@@ -140,4 +142,7 @@ export async function terminateGracefully(signal: string) {  // Required for aut
 process.on("SIGINT", () => terminateGracefully("SIGINT"));   // CTRL+C
 process.on("SIGTERM", () => terminateGracefully("SIGTERM"));  // `kill` command
 
-whatsapp.serve(mongodb, messageCallback);
+mongodb.downloadDirectory("wwebjs_auth").then(() => {  // Restore session
+    authDownloadCompleted = true;
+    whatsapp.serve(messageCallback);
+});
