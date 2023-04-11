@@ -1,7 +1,7 @@
 // client.ts
 // (C) Martin Alebachew, 2023
 
-import { MongoClient, Db, Collection, ObjectId } from "mongodb";
+import { MongoClient, ObjectId } from "mongodb";
 import type { WithId, Document } from "mongodb";
 import { rmSync, writeFileSync, mkdirSync, readdirSync, statSync, readFileSync } from "fs";
 
@@ -23,21 +23,6 @@ class WrappedData implements IWrappedData {
     }
 }
 
-interface IWrappedArray extends WithId<Document> {
-    _id: ObjectId,
-    wrappedArray: WrappedData[]
-}
-
-class WrappedArray implements IWrappedArray {
-    public _id: ObjectId;
-    public wrappedArray: WrappedData[];
-
-    constructor(wrappedArray: WrappedData[]) {
-        this._id = new ObjectId();
-        this.wrappedArray = wrappedArray;
-    }
-}
-
 export class Client {
     private connection: MongoClient;
 
@@ -55,9 +40,9 @@ export class Client {
 
         const database = this.connection.db("persistent-storage");
         const collection = database.collection(folder);
+
         const wrappedList = await this.fetchDirectory(folder);
-        const wrappedArray = new WrappedArray(wrappedList);
-        await collection.insertOne(wrappedArray);
+        await collection.insertMany(wrappedList);
 
         console.log("Successfully uploaded authentication files.\n");
     }
