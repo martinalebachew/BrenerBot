@@ -15,7 +15,9 @@ export class WhatsAppConnection {
                 dataPath: "wwebjs_auth"  // Omitted default dot to match MongoDB collection naming restrictions
             }),
             puppeteer: {
-                args: ["--no-sandbox"]
+                args: ["--no-sandbox"],
+                handleSIGTERM: false,
+                handleSIGINT: false
             }
         });
 

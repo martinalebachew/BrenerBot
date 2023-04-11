@@ -15,10 +15,12 @@ import { createServer } from "http";
 import { MessageTypes } from "whatsapp-web.js";
 
 // Heroku requirement: Dispatch HTTP listener
-createServer(function (req, res) {
+const server = createServer(function (req, res) {
     res.writeHead(200);  // OK response code
     res.end();
 }).listen(process.env.PORT);
+
+let processNewCommands = true;  // Used for graceful termination
 
 
 // Phase 0: Load configuration
@@ -76,6 +78,8 @@ async function messageCallback(message: TextMessage) {
     /* Pre-processing: This function is called only on messages
     of a supported type and have been sent while the bot is online. */
 
+    if (!processNewCommands) return;
+
     // Processing Stage 1: Obtain command
     const content = message.text;
     if (!content.startsWith(BOT_PREFIX)) return;
@@ -117,16 +121,17 @@ async function messageCallback(message: TextMessage) {
     await commandObj.execute(whatsapp, message, type, args);
 }
 
-export async function cleanShutdown() {  // Required for auth persistence
-    console.log("Terminating...");
+export async function terminateGracefully(signal: string) {  // Required for auth persistence
+    console.log(`[${signal}] Terminating...`);
+    processNewCommands = false;
+    server.close();
     await whatsapp.destroy();  // Close WhatsApp connection to flush auth files
     await mongodb.uploadDirectory("wwebjs_auth");  // Upload auth files
     await mongodb.closeConnection();
     process.exit(0);
 }
 
-process.on("SIGINT", cleanShutdown);   // CTRL+C
-process.on("SIGQUIT", cleanShutdown);  // Keyboard quit
-process.on("SIGTERM", cleanShutdown);  // `kill` command
+process.on("SIGINT", () => terminateGracefully("SIGINT"));   // CTRL+C
+process.on("SIGTERM", () => terminateGracefully("SIGTERM"));  // `kill` command
 
 whatsapp.serve(mongodb, messageCallback);
