@@ -14,6 +14,14 @@ import { existsSync, readdirSync, statSync } from "fs";
 import { createServer } from "http";
 import { MessageTypes } from "whatsapp-web.js";
 
+// Create global pino logger
+export const logger = pino({
+    level: "debug"
+});
+
+const LOG_HEADER = "---> ";
+const LOG_SPACER = "     ";
+
 // Heroku requirement: Dispatch HTTP listener
 const server = createServer(function (req, res) {
     res.writeHead(200);  // OK response code
@@ -26,6 +34,7 @@ let authDownloadCompleted = false;
 
 
 // Phase 0: Load configuration
+logger.info(LOG_HEADER + "Loading configuration...");
 export let config: any;
 if (existsSync(join(__dirname,"../config.json"))) {
     log("Loading configuration from config.json...");
@@ -38,11 +47,13 @@ const OWNER_ADDRESS = new UserAddress(phoneNumber.countryCallingCode + phoneNumb
 const username = config?.mongoDB?.username || process.env.MONGODB_USERNAME;
 const password = config?.mongoDB?.password || process.env.MONGODB_PASSWORD;
 const endpoint = config?.mongoDB?.endpoint || process.env.MONGODB_ENDPOINT;
-
+const phoneNumber = parsePhoneNumber(config.phoneNumber, config.countryCode as CountryCode);
+const OWNER_ADDRESS = new UserAddress(parseInt(phoneNumber.countryCallingCode + phoneNumber.nationalNumber));  // Bot owner's address
+logger.info(LOG_SPACER + "Loaded Configuration.");
 
 // Phase 1: Load commands
 // Load command files and extract commands
-log("Loading command files...");
+logger.info(LOG_HEADER + "Loading command files...");
 
 export const commandsDict: { [key: string]: Command } = { };
 export const commandsByCategories: { [key: string]: Command[] } = { };
@@ -57,7 +68,7 @@ function scanForCommandFiles(fullDir: string) {
             // TODO: limit to one level only
         } else {
             const command = require(file);
-            log("* Loaded " + file);
+            logger.debug(LOG_SPACER + "* Loaded " + file);
             commandsDict[command.nativeText.name] = command;
 
             const category = dirToCategories[basename(fullDir)];
@@ -70,7 +81,7 @@ function scanForCommandFiles(fullDir: string) {
 }
 
 scanForCommandFiles(join(__dirname, "commands")); // Project's sub-directory for command files
-log("Loaded commands.");
+logger.info(LOG_SPACER + "Loaded commands.");
 
 // Phase 2: Connect to WhatsApp
 const mongodb = new Client(username, password, endpoint);
@@ -80,47 +91,78 @@ async function messageCallback(message: TextMessage) {
     /* Pre-processing: This function is called only on messages
     of a supported type and have been sent while the bot is online. */
 
-    if (!processNewCommands) return;
+    const messageLogger = logger.child({ message: message });
+    messageLogger.trace(LOG_HEADER + "Analysing message...");
+
+    if (!processNewCommands) {
+        messageLogger.trace(LOG_SPACER + "Not to process new commands. Aborting.");
+    } else messageLogger.trace(LOG_SPACER + "Allowed to process new commands. Continuing...");;
 
     // Processing Stage 1: Obtain command
     const content = message.text;
-    if (!content.startsWith(BOT_PREFIX)) return;
+    if (!content.startsWith(BOT_PREFIX)) {
+        messageLogger.trace(LOG_SPACER + `Message doesn't start with configured bot prefix: "${config.botPrefix}". Aborting.`);
+        return;
+    } else messageLogger.trace(LOG_SPACER + `Message starts with configured bot prefix: "${config.botPrefix}". Continuing...`);
 
     const args = content.substring(BOT_PREFIX.length).split(" ");
     const commandKey = args.shift();
-    if (!commandKey) return;
+    if (!commandKey) {
+        messageLogger.trace(LOG_SPACER + "Message doesn't contain a command key directly following the prefix. Aborting.");
+        return;
+    } else messageLogger.trace(LOG_SPACER + `Message contains a command key directly following the prefix: "${commandKey}". Continuing...`);
 
     const commandObj = commandsDict[commandKey];
-    if (!commandObj) return;
+    if (!commandObj) {
+        messageLogger.trace(LOG_SPACER + "Failed to find a command matching the key specified above. Aborting.");
+        return;
+    } messageLogger.trace(LOG_SPACER + "Found a command matching the key specified above. Continuing...");
 
     // Processing Stage 2: Check message type
     const type = MessageTypes.TEXT;  // TODO: FIX TEMP WORKAROUND
-    if (!commandObj.requestTypes.includes(type)) return;
+    if (!commandObj.requestTypes.includes(type)) {
+        messageLogger.trace(LOG_SPACER + `Message type "${type}" is not one of the command's supported types: ${commandObj.requestTypes}. Aborting.`);
+        return;
+    } messageLogger.trace(LOG_SPACER + `Message type "${type}" is one of the command's supported types: ${commandObj.requestTypes}. Continuing...`);
 
     // Processing Stage 3: Verify permissions
     if (!message.inGroup) {  // Private chat
         const senderPerms = (message.author.equals(OWNER_ADDRESS)) ? PrivateChatPermissions.Owner : PrivateChatPermissions.Everyone;
-        if (commandObj.permissions.privateChat < senderPerms) return;
+        messageLogger.trace(LOG_SPACER + `Analyzed author permissions as Private Chat @ ${PrivateChatPermissions[senderPerms]}.`);
+
+        const commandPerms = commandObj.permissions.privateChat;
+        if (commandPerms < senderPerms) {
+            messageLogger.trace(LOG_SPACER + `Author permissions are insufficient, this command requires Private Chat @ ${PrivateChatPermissions[commandPerms]}. Aborting.`);
+            return;
+        } messageLogger.trace(LOG_SPACER + `Author permissions are sufficient, this command requires Private Chat @ ${PrivateChatPermissions[commandPerms]}. Continuing...`);
+
     } else {  // Group chat
         let senderPerms;
         if (message.author.equals(OWNER_ADDRESS)) senderPerms = GroupChatPermissions.Owner;
         else senderPerms = GroupChatPermissions.Everyone;
         // else {
-        //     let groupMetadata = await whatsapp.fetchGroupMetadata(message.chat)
-        //     let participant = groupMetadata.participants.find((participant: GroupParticipant) => {
-        //         return participant.id === message.author.serialized
-        //     })
+        //     const groupMetadata = await whatsapp.fetchGroupMetadata(message.chat);
+        //     const participant = groupMetadata.participants.find((participant: GroupParticipant) => {
+        //         return participant.id === message.author.serialized;
+        //     });
         //
-        //     let isAdmin = participant.isAdmin || participant.isSuperAdmin
-        //     senderPerms = isAdmin ? GroupChatPermissions.Admin : GroupChatPermissions.Everyone
+        //     const isAdmin = participant.isAdmin || participant.isSuperAdmin;
+        //     senderPerms = isAdmin ? GroupChatPermissions.Admin : GroupChatPermissions.Everyone;
         // }
 
-        if (commandObj.permissions.groupChat < senderPerms) return;
+        messageLogger.trace(LOG_SPACER + `Analyzed author permissions as Group Chat @ ${GroupChatPermissions[senderPerms]}.`);
+
+        const commandPerms = commandObj.permissions.groupChat;
+        if (commandPerms < senderPerms) {
+            messageLogger.trace(LOG_SPACER + `Author permissions are insufficient, this command requires Group Chat @ ${GroupChatPermissions[commandPerms]}. Aborting.`);
+            return;
+        } messageLogger.trace(LOG_SPACER + `Author permissions are sufficient, this command requires Group Chat @ ${GroupChatPermissions[commandPerms]}. Continuing...`);
     }
 
     // Processing Stage 4: Execute command
-    log("---> Executing command", commandObj.nativeText.name, "from", message.author.serialized);
+    messageLogger.info(LOG_HEADER + `Executing command ${commandKey}...`);
     await commandObj.execute(whatsapp, message, type, args);
+    messageLogger.trace(LOG_SPACER + "Completed execution.");
 }
 
 export async function terminateGracefully(signal: string) {  // Required for auth persistence

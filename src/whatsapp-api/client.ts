@@ -21,7 +21,7 @@ export class WhatsAppConnection {
         });
 
         this.client.on("qr", (qr) => {
-            qrcode.generate(qr, { small: true });
+            qrcode.generate(qr, {small: true});
         });
 
         this.client.on("ready", () => {
