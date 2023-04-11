@@ -1,15 +1,16 @@
 // help.ts
 // (C) Martin Alebachew, 2023
 
-import { Command, GroupChatPermissions, PrivateChatPermissions } from "../commands"
+import { MessageTypes } from "whatsapp-web.js";
+import { Command, GroupChatPermissions, PrivateChatPermissions } from "../commands";
 import { commandsDict } from "../../index";
-import { WhatsAppConnection } from "../../whatsapp-api/client"
-import { MessageBase } from "../../whatsapp-api/message"
+import { WhatsAppConnection } from "../../whatsapp-api/client";
+import { MessageBase } from "../../whatsapp-api/message";
 
-const NATIVE_HELP_HEADER = "*היי, אני ברנרבוט 👋*\nהנה הפקודות שלי:\n\n"
+const NATIVE_HELP_HEADER = "*היי, אני ברנרבוט 👋*\nהנה הפקודות שלי:\n\n";
 
-let command: Command = {
-    requestTypes: ["conversation"],
+const command: Command = {
+    requestTypes: [MessageTypes.TEXT],
 
     permissions: {
         groupChat: GroupChatPermissions.Everyone,
@@ -22,14 +23,14 @@ let command: Command = {
     },
 
     async execute(whatsapp: WhatsAppConnection, message: MessageBase, type: string, args: string[]) {
-        if (args.length) return
-        let helpMsg = NATIVE_HELP_HEADER
-        for (let commandName in commandsDict) {
-            helpMsg += "* !" + commandName + "\n"
+        if (args.length) return;
+        let helpMsg = NATIVE_HELP_HEADER;
+        for (const commandName in commandsDict) {
+            helpMsg += "* !" + commandName + "\n";
         }
 
-        await whatsapp.reply(message, helpMsg)
+        await message.raw.reply(helpMsg);
     }
-}
+};
 
-module.exports = command
+module.exports = command;

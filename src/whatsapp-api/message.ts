@@ -1,49 +1,47 @@
 // message.ts
 // (C) Martin Alebachew, 2023
 
-import { Address, GroupAddress, UserAddress } from "./address"
-import { WAMessage, getContentType } from "@adiwajshing/baileys"
+import { Message, MessageTypes } from "whatsapp-web.js";
+import { Address, GroupAddress, UserAddress } from "./address";
 
 export class MessageBase {
-    public author: UserAddress
-    public chat: UserAddress | GroupAddress
-    public inGroup: boolean
-    public raw: WAMessage
+    public author: UserAddress;
+    public chat: UserAddress | GroupAddress;
+    public inGroup: boolean;
+    public raw: Message;
 
-    constructor(rawMessage: WAMessage, author: UserAddress, chat: UserAddress | GroupAddress, inGroup: boolean) {
-        this.author = author
-        this.chat = chat
-        this.inGroup = inGroup
-        this.raw = rawMessage
+    constructor(rawMessage: Message, author: UserAddress, chat: UserAddress | GroupAddress, inGroup: boolean) {
+        this.author = author;
+        this.chat = chat;
+        this.inGroup = inGroup;
+        this.raw = rawMessage;
     }
 
-    public static parse(message: WAMessage): { message: MessageBase, type: string } | undefined {
-        let chat = Address.parse(message.key?.remoteJid ?? "")
-        if (!chat) return
+    public static parse(message: Message): MessageBase | undefined {
+        const chat = Address.parse(message.from || message.to);
+        if (!chat) return;
 
-        let inGroup = !(chat instanceof UserAddress)
-        let author
+        const inGroup = !(chat instanceof UserAddress);
+        let author;
 
         if (inGroup) {
-            author = Address.parse(message.key?.participant ?? "")
-            if (!author) return
-        } else author = chat
+            author = Address.parse(message.author ?? "");
+            if (!author) return;
+        } else author = chat;
 
-        let type = getContentType(message.message ?? undefined)
-
-        if (type === "conversation")  // Text message
-            return { message: new TextMessage(message, author, chat, message.message?.conversation ?? "", inGroup), type: type }
+        if (message.type === MessageTypes.TEXT)  // Text message
+            return new TextMessage(message, author, chat, message.body, inGroup);
         else  // Unsupported message type
-            return
+            return;
     }
 }
 
 export class TextMessage extends MessageBase {
-    public text: string
+    public text: string;
 
-    constructor(rawMessage: WAMessage, author: UserAddress, chat: UserAddress | GroupAddress, text: string, inGroup: boolean) {
-        super(rawMessage, author, chat, inGroup)
-        this.text = text
+    constructor(rawMessage: Message, author: UserAddress, chat: UserAddress | GroupAddress, text: string, inGroup: boolean) {
+        super(rawMessage, author, chat, inGroup);
+        this.text = text;
     }
 }
 

@@ -1,50 +1,53 @@
 // client.ts
 // (C) Martin Alebachew, 2023
 
-import makeWASocket, { WAMessage, MessageUpsertType, useMultiFileAuthState } from "@adiwajshing/baileys"
-import { GroupAddress, UserAddress } from "./address"
-import { MessageBase, TextMessage } from "./message"
-let pino = require("pino")
+import { Client, Message, LocalAuth } from "whatsapp-web.js";
+import { MessageBase, TextMessage } from "./message";
+import qrcode from "qrcode-terminal";
 
 export class WhatsAppConnection {
-    private _conn: any
+    private client: Client;
 
-    async authenticate() {
-        const { state, saveCreds } = await useMultiFileAuthState(".wweb_auth")
-        this._conn = makeWASocket({
-            auth: state,
-            printQRInTerminal: true,
-            logger: pino({ level: "silent" })
-        })
+    constructor() {
+        this.client = new Client({
+            authStrategy: new LocalAuth({
+                dataPath: "wwebjs_auth"  // Omitted default dot to match MongoDB collection naming restrictions
+            }),
+            puppeteer: {
+                args: ["--no-sandbox"],
+                handleSIGTERM: false,
+                handleSIGINT: false
+            }
+        });
 
-        this._conn.ev.on("creds.update", saveCreds)
+        this.client.on("qr", (qr) => {
+            qrcode.generate(qr, { small: true });
+        });
+
+        this.client.on("ready", () => {
+            console.log("🟢 Connected!");
+        });
     }
 
-    async setCallback(messageCallback: (message: TextMessage, type: string) => Promise<void>) {
-        this._conn.ev.on("messages.upsert", ({ messages, type }: { messages: WAMessage[], type: MessageUpsertType }) => {
-            if (type === "notify")  // Handle only messages sent while BrenerBot is up
-                messages.forEach((rawMessage) => {
-                    const parsed = MessageBase.parse(rawMessage)
-                    if (parsed?.message) messageCallback(parsed.message as TextMessage, parsed.type)  // Processes only supported message types
-                })
-        })
+    async serve(messageCallback: (message: TextMessage) => Promise<void>) {
+        this.client.on("message", (message: Message) => {  // Handles only messages sent while BrenerBot is up
+            const parsed = MessageBase.parse(message);
+            if (parsed) messageCallback(parsed as TextMessage);
+        });
+
+        await this.client.initialize();
     }
 
-    async fetchGroupMetadata(address: GroupAddress) {
-        const allGroupsMetadata = await this._conn.groupFetchAllParticipating()
-        return allGroupsMetadata[address.serialized]
+    async destroy() {
+        await this.client.destroy();
     }
 
-    async reply(message: MessageBase, text: string) {
-        await this._conn.sendMessage(message.chat.serialized, { text: text }, { quoted: message.raw })
-    }
+    // async fetchGroupMetadata(address: GroupAddress) {
+    //     const allGroupsMetadata = await this.client.groupFetchAllParticipating();
+    //     return allGroupsMetadata[address.serialized];
+    // }
 
-    async stickerReply(message: MessageBase, buffer: Buffer) {
-        await this._conn.sendMessage(message.chat.serialized, {
-            sticker: buffer,
-            isAnimated: false
-        }, {
-            quoted: message.raw
-        })
-    }
+    // async reply(message: MessageBase, text: string) {
+    //     await this.client.sendMessage(message.chat.serialized, { text: text }, { quoted: message.raw });
+    // }
 }

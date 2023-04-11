@@ -2,33 +2,33 @@
 // (C) Martin Alebachew, 2023
 
 export enum Server {
-    User = "@s.whatsapp.net",  // c.us in selenium-based and puppeteer-based libraries
+    User = "@c.us",  // c.us in selenium-based and puppeteer-based libraries, @s.whatsapp.net in websocket-based libraries
     Group = "@g.us"
 }
 
 export class Address {
-    private _id: string
-    private _server: Server
-    public serialized: string
+    private _id: string;
+    private _server: Server;
+    public serialized: string;
 
-    constructor(id: number, server: Server) {
-        this._id = id.toString()
-        this._server = server
-        this.serialized = this._serialize()
+    constructor(id: string, server: Server) {
+        this._id = id;
+        this._server = server;
+        this.serialized = this._serialize();
     }
 
-    public set id (id: number) {
-        this._id = id.toString()
-        this.serialized = this._serialize()
+    public set id (id: string) {
+        this._id = id;
+        this.serialized = this._serialize();
     }
 
     public set server (server: Server) {
-        this._server = server
-        this.serialized = this._serialize()
+        this._server = server;
+        this.serialized = this._serialize();
     }
 
     private _serialize() {
-        return this._id + this._server
+        return this._id + this._server;
     }
 
     public toString() {
@@ -41,23 +41,23 @@ export class Address {
 
     public static parse(serialized: string): Address | undefined {
         if (serialized.endsWith(Server.User)) {
-            let id = parseInt(serialized.substring(0, serialized.length - Server.User.length))
-            return new UserAddress(id)
+            const id = serialized.substring(0, serialized.length - Server.User.length);
+            return new UserAddress(id);
         } else if (serialized.endsWith(Server.Group)) {
-            let id = parseInt(serialized.substring(0, serialized.length - Server.Group.length))
-            return new GroupAddress(id)
-        } else return
+            const id = serialized.substring(0, serialized.length - Server.Group.length);
+            return new GroupAddress(id);
+        } else return;
     }
 }
 
 export class UserAddress extends Address {
-    constructor(userId: number) {
+    constructor(userId: string) {
         super(userId, Server.User);
     }
 }
 
 export class GroupAddress extends Address {
-    constructor(groupId: number) {
+    constructor(groupId: string) {
         super(groupId, Server.Group);
     }
 }

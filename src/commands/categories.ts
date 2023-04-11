@@ -6,4 +6,4 @@ export const dirToCategories : {[key: string]: string} = {
     "stickers": "סטיקרים",
     "admin": "מנהלי קבוצות",
     "other": "אחר"
-}
+};

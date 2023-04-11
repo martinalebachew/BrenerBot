@@ -1,12 +1,13 @@
 // code.ts
 // (C) Martin Alebachew, 2023
 
-import { Command, GroupChatPermissions, PrivateChatPermissions } from "../commands"
-import { WhatsAppConnection } from "../../whatsapp-api/client"
-import { MessageBase } from "../../whatsapp-api/message"
+import { MessageTypes } from "whatsapp-web.js";
+import { Command, GroupChatPermissions, PrivateChatPermissions } from "../commands";
+import { WhatsAppConnection } from "../../whatsapp-api/client";
+import { MessageBase } from "../../whatsapp-api/message";
 
-let command: Command = {
-    requestTypes: ["conversation"],
+const command: Command = {
+    requestTypes: [MessageTypes.TEXT],
 
     permissions: {
         groupChat: GroupChatPermissions.Everyone,
@@ -19,9 +20,9 @@ let command: Command = {
     },
 
     async execute(whatsapp: WhatsAppConnection, message: MessageBase, type:string, args: string[]) {
-        if (args.length) return
-        await whatsapp.reply(message, "https://github.com/martinalebachew/BrenerBot")
+        if (args.length) return;
+        await message.raw.reply("https://github.com/martinalebachew/BrenerBot");
     }
-}
+};
 
-module.exports = command
+module.exports = command;
