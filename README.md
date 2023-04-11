@@ -27,8 +27,7 @@ Designed mainly for group chats!
 | Feature              | Branch            | Availability |
 | :------------------- | :---------------- | :----------- |
 | Advanced logging     | feature/logging   | 🚧           |
-| Heroku compatibility | feature/heroku    | 🚧           |
-| WebSocket connection | feature/websocket | 🚧           |
+| Heroku compatibility |                   | ✅           |
 
 ## Getting started
 
