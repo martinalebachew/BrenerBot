@@ -155,10 +155,12 @@ Share your commands with us :)
 Add the following buildpacks in your app:
 - https://github.com/heroku/heroku-buildpack-nodejs
 - https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest
+- https://elements.heroku.com/buildpacks/jontewks/puppeteer-heroku-buildpack
 
 BrenerBot now supports GitHub deployment on Heroku!
 
-1. Configure BrenerBot. See [Configuring BrenerBot without persistent storage](#target-platform-doesnt-have-persistent-storage).
-2. Connect your Heroku application to BrenerBot's GitHub repository and enable automatic deployments of the `main` branch.
-3. Check out the application's logs - a QR code should be printed. Scan this code using BrenerBot's WhatsApp account.
-4. That's it! BrenerBot is up and running!
+1. Create a Heroku application.
+2. Configure BrenerBot. See [Configuring BrenerBot without persistent storage](#target-platform-doesnt-have-persistent-storage).
+3. Connect your Heroku application to BrenerBot's GitHub repository and enable automatic deployments of the `main` branch.
+4. Check out the application's logs - a QR code should be printed. Scan this code using BrenerBot's WhatsApp account.
+5. That's it! BrenerBot is up and running!
