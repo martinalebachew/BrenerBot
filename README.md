@@ -24,10 +24,10 @@ Designed mainly for group chats!
 
 ### Features
 
-| Feature              | Branch            | Availability |
-| :------------------- | :---------------- | :----------- |
-| Advanced logging     | feature/logging   | 🚧           |
-| Heroku compatibility |                   | ✅           |
+| Feature              | Branch          | Availability |
+| :------------------- | :-------------- | :----------- |
+| Advanced logging     | feature/logging | 🚧           |
+| Heroku compatibility |                 | ✅           |
 
 ## Getting started
 
@@ -78,17 +78,18 @@ However, it is possible to use them and configure MongoDB. To learn more, read t
 ### Target platform doesn't have persistent storage?
 
 It is possible to configure BrenerBot for platforms that don't support persistent storage, by using environment variables and MongoDB. Create a MongoDB account for free and add a new cluster for BrenerBot's data. This cluster should be used by one BrenerBot instance only. Then, set the following environment variables:
-   - `BOT_PREFIX` - identical to `botPrefix` in _config.json_. See usage above.
-   - `PHONE_NUMBER` - identical to `phoneNumber` in _config.json_. See usage above.
-   - `COUNTRY_CODE` - identical to `countryCode` in _config.json_. See usage above.
-   - `MONGODB_USERNAME` - identical to `mongoDB.username` in _config.json_. Set this value to the username of a MongoDB user
-     with full read/write permissions to BrenerBot's data cluster you created.
-   - `MONGODB_PASSWORD` - identical to `mongoDB.username` in _config.json_. Set this value to the user's password. Note that
-     some special characters are not supported and may cause the connection to fail.
-   - `MONGODB_ENDPOINT` - identical to `mongoDB.username` in _config.json_. Set this value to the cluster's url.
-     You can extract this value from the example connection string . For example, in this connection string:
-     `mongodb+srv://heroku:<password>@brenerbot.49nJ3We.mongodb.net/?retryWrites=true&w=majority`,
-     the endpoint url is `brenerbot.49nJ3We.mongodb.net`, basically everything after `@` and before `/`.
+
+- `BOT_PREFIX` - identical to `botPrefix` in _config.json_. See usage above.
+- `PHONE_NUMBER` - identical to `phoneNumber` in _config.json_. See usage above.
+- `COUNTRY_CODE` - identical to `countryCode` in _config.json_. See usage above.
+- `MONGODB_USERNAME` - identical to `mongoDB.username` in _config.json_. Set this value to the username of a MongoDB user
+  with full read/write permissions to BrenerBot's data cluster you created.
+- `MONGODB_PASSWORD` - identical to `mongoDB.username` in _config.json_. Set this value to the user's password. Note that
+  some special characters are not supported and may cause the connection to fail.
+- `MONGODB_ENDPOINT` - identical to `mongoDB.username` in _config.json_. Set this value to the cluster's url.
+  You can extract this value from the example connection string . For example, in this connection string:
+  `mongodb+srv://heroku:<password>@brenerbot.49nJ3We.mongodb.net/?retryWrites=true&w=majority`,
+  the endpoint url is `brenerbot.49nJ3We.mongodb.net`, basically everything after `@` and before `/`.
 
 ### Compile & Run
 
