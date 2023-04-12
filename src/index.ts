@@ -13,6 +13,8 @@ import { Client } from "./mongodb-api/client";
 import { existsSync, readdirSync, statSync } from "fs";
 import { createServer } from "http";
 import { MessageTypes } from "whatsapp-web.js";
+import { pino } from "pino";
+
 
 // Create global pino logger
 export const logger = pino({
@@ -47,8 +49,6 @@ const OWNER_ADDRESS = new UserAddress(phoneNumber.countryCallingCode + phoneNumb
 const username = config?.mongoDB?.username || process.env.MONGODB_USERNAME;
 const password = config?.mongoDB?.password || process.env.MONGODB_PASSWORD;
 const endpoint = config?.mongoDB?.endpoint || process.env.MONGODB_ENDPOINT;
-const phoneNumber = parsePhoneNumber(config.phoneNumber, config.countryCode as CountryCode);
-const OWNER_ADDRESS = new UserAddress(parseInt(phoneNumber.countryCallingCode + phoneNumber.nationalNumber));  // Bot owner's address
 logger.info(LOG_SPACER + "Loaded Configuration.");
 
 // Phase 1: Load commands
