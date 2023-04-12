@@ -6,7 +6,7 @@ import { Command, GroupChatPermissions, PrivateChatPermissions } from "./command
 import { dirToCategories } from "./commands/categories";
 import { log } from "./utils/log";
 import { WhatsAppConnection } from "./whatsapp-api/client";
-import { TextMessage } from "./whatsapp-api/message";
+import { TextMessage, MessageBase } from "./whatsapp-api/message";
 import { UserAddress } from "./whatsapp-api/address";
 import { parsePhoneNumber } from "libphonenumber-js";
 import { Client } from "./mongodb-api/client";
@@ -87,16 +87,17 @@ logger.info(LOG_SPACER + "Loaded commands.");
 const mongodb = new Client(username, password, endpoint);
 const whatsapp = new WhatsAppConnection();
 
-async function messageCallback(message: TextMessage) {
+async function messageCallback(message: MessageBase) {
     /* Pre-processing: This function is called only on messages
     of a supported type and have been sent while the bot is online. */
+    if (!(message instanceof TextMessage)) return;
 
     const messageLogger = logger.child({ message: message });
     messageLogger.trace(LOG_HEADER + "Analysing message...");
 
     if (!processNewCommands) {
         messageLogger.trace(LOG_SPACER + "Not to process new commands. Aborting.");
-    } else messageLogger.trace(LOG_SPACER + "Allowed to process new commands. Continuing...");;
+    } else messageLogger.trace(LOG_SPACER + "Allowed to process new commands. Continuing...");
 
     // Processing Stage 1: Obtain command
     const content = message.text;

@@ -29,10 +29,10 @@ export class WhatsAppConnection {
         });
     }
 
-    async serve(messageCallback: (message: TextMessage) => Promise<void>) {
+    async serve(messageCallback: (message: MessageBase) => Promise<void>) {
         this.client.on("message", (message: Message) => {  // Handles only messages sent while BrenerBot is up
             const parsed = MessageBase.parse(message);
-            if (parsed) messageCallback(parsed as TextMessage);
+            if (parsed) messageCallback(parsed);
         });
 
         await this.client.initialize();
