@@ -83,9 +83,9 @@ It is possible to configure BrenerBot for platforms that don't support persisten
    - `COUNTRY_CODE` - identical to `countryCode` in _config.json_. See usage above.
    - `MONGODB_USERNAME` - identical to `mongoDB.username` in _config.json_. Set this value to the username of a MongoDB user
      with full read/write permissions to BrenerBot's data cluster you created.
-   - `MONGODB_PASSWORD` - identical to `mongoDB.username` in _config.json_. Set this value to the user's password. Note that
+   - `MONGODB_PASSWORD` - identical to `mongoDB.password` in _config.json_. Set this value to the user's password. Note that
      some special characters are not supported and may cause the connection to fail.
-   - `MONGODB_ENDPOINT` - identical to `mongoDB.username` in _config.json_. Set this value to the cluster's url.
+   - `MONGODB_ENDPOINT` - identical to `mongoDB.endpoint` in _config.json_. Set this value to the cluster's url.
      You can extract this value from the example connection string . For example, in this connection string:
      `mongodb+srv://heroku:<password>@brenerbot.49nJ3We.mongodb.net/?retryWrites=true&w=majority`,
      the endpoint url is `brenerbot.49nJ3We.mongodb.net`, basically everything after `@` and before `/`.
