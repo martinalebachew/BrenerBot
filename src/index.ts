@@ -4,7 +4,6 @@
 import { join, basename } from "path";
 import { Command, GroupChatPermissions, PrivateChatPermissions } from "./commands/commands";
 import { dirToCategories } from "./commands/categories";
-import { log } from "./utils/log";
 import { WhatsAppConnection } from "./whatsapp-api/client";
 import { TextMessage, MessageBase } from "./whatsapp-api/message";
 import { UserAddress } from "./whatsapp-api/address";
@@ -16,21 +15,25 @@ import { MessageTypes } from "whatsapp-web.js";
 import { pino } from "pino";
 
 
-// Create global pino logger
-export const logger = pino({
-    level: "debug"
-});
-
+// Possible values are trace, debug, info, warn, error, and fatal
+const PINO_DEBUG_LEVEL = "debug";
 const LOG_HEADER = "---> ";
 const LOG_SPACER = "     ";
+
+
+// Create global pino logger
+export const logger = pino({
+    level: PINO_DEBUG_LEVEL
+});
 
 // Heroku requirement: Dispatch HTTP listener
 const server = createServer(function (req, res) {
     res.writeHead(200);  // OK response code
     res.end();
 }).listen(process.env.PORT);
+logger.trace(LOG_HEADER + "Dispatched HTTP server.");
 
-// Graceful termination state booleans
+// Graceful termination global state booleans
 let processNewCommands = true;
 let authDownloadCompleted = false;
 
@@ -39,9 +42,9 @@ let authDownloadCompleted = false;
 logger.info(LOG_HEADER + "Loading configuration...");
 export let config: any;
 if (existsSync(join(__dirname,"../config.json"))) {
-    log("Loading configuration from config.json...");
+    logger.debug("Loading configuration from config.json...");
     config  = require("../config.json");
-} else log("Loading configuration from environment variables...");
+} else logger.debug("Loading configuration from environment variables...");
 
 const BOT_PREFIX = config?.botPrefix || process.env.BOT_PREFIX;  // Prefix for all bot commands
 const phoneNumber = parsePhoneNumber(config?.phoneNumber || process.env.PHONE_NUMBER, config?.countryCode || process.env.COUNTRY_CODE);
@@ -167,7 +170,7 @@ async function messageCallback(message: MessageBase) {
 }
 
 export async function terminateGracefully(signal: string) {  // Required for auth persistence
-    console.log(`\n[${signal}] Terminating...`);
+    logger.info(`\n[${signal}] Terminating...`);
     processNewCommands = false;
 
     // Allow 5 seconds for processing current commands
@@ -176,7 +179,7 @@ export async function terminateGracefully(signal: string) {  // Required for aut
         if (authDownloadCompleted) await mongodb.uploadDirectory("wwebjs_auth");  // Upload auth files
         await mongodb.closeConnection();
         server.close();
-        console.log("Finished.");
+        logger.info("Finished.");
         process.exit(0);
     }, 5000);
 

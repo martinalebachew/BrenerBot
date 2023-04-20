@@ -1,8 +1,9 @@
 // client.ts
 // (C) Martin Alebachew, 2023
 
+import { logger } from "../index";
 import { Client, Message, LocalAuth } from "whatsapp-web.js";
-import { MessageBase, TextMessage } from "./message";
+import { MessageBase } from "./message";
 import qrcode from "qrcode-terminal";
 
 export class WhatsAppConnection {
@@ -25,7 +26,7 @@ export class WhatsAppConnection {
         });
 
         this.client.on("ready", () => {
-            console.log("🟢 Connected!");
+            logger.info("🟢 Connected!");
         });
     }
 

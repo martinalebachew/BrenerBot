@@ -1,6 +1,7 @@
 // client.ts
 // (C) Martin Alebachew, 2023
 
+import { logger } from "../index";
 import { MongoClient, ObjectId } from "mongodb";
 import type { WithId, Document } from "mongodb";
 import { rmSync, writeFileSync, mkdirSync, readdirSync, statSync, readFileSync } from "fs";
@@ -38,7 +39,7 @@ export class Client {
     }
 
     public async uploadDirectory(folder: string) {
-        console.log("\nUploading authentication files...");
+        logger.info("\nUploading authentication files...");
 
         const database = this.connection.db(DATABASE);
         const collection = database.collection(folder);
@@ -47,7 +48,7 @@ export class Client {
         const wrappedList = await this.fetchDirectory(folder);
         await collection.insertMany(wrappedList);
 
-        console.log("Successfully uploaded authentication files.\n");
+        logger.info("Successfully uploaded authentication files.\n");
     }
 
     private async fetchDirectory(folder: string) {
@@ -71,7 +72,7 @@ export class Client {
         const data = empty ? "" : readFileSync(relativePath, { encoding: "base64" });  // Read file contents and encode as base64
         const relativePathNoFolder = relativePath.split("/").slice(1).join("/");
         const wrapped = new WrappedData(relativePathNoFolder, data);
-        console.log("* Fetched: ", relativePath);
+        logger.trace("* Fetched: ", relativePath);
         return wrapped;
     }
 
@@ -86,11 +87,11 @@ export class Client {
             writeFileSync(relativePath, data, { encoding: "base64" });  // Write file contents decoded as base64
         } else mkdirSync(relativePath, { recursive: true });
 
-        console.log("* Downloaded: ", relativePath);
+        logger.trace("* Downloaded: ", relativePath);
     }
 
     public async downloadDirectory(folder: string) {
-        console.log("\nDownloading authentication files...");
+        logger.info("\nDownloading authentication files...");
         rmSync(folder, { recursive: true, force: true });
 
         const database = this.connection.db(DATABASE);
@@ -100,6 +101,6 @@ export class Client {
             this.downloadFile(folder, document as WrappedData);
         });
 
-        console.log("Successfully downloaded authentication files.\n");
+        logger.info("Successfully downloaded authentication files.\n");
     }
 }
