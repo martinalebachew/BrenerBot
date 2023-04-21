@@ -105,9 +105,9 @@ async function messageCallback(message: MessageBase) {
     // Processing Stage 1: Obtain command
     const content = message.text;
     if (!content.startsWith(BOT_PREFIX)) {
-        messageLogger.trace(LOG_SPACER + `Message doesn't start with configured bot prefix: "${config.botPrefix}". Aborting.`);
+        messageLogger.trace(LOG_SPACER + `Message doesn't start with configured bot prefix: "${BOT_PREFIX}". Aborting.`);
         return;
-    } else messageLogger.trace(LOG_SPACER + `Message starts with configured bot prefix: "${config.botPrefix}". Continuing...`);
+    } else messageLogger.trace(LOG_SPACER + `Message starts with configured bot prefix: "${BOT_PREFIX}". Continuing...`);
 
     const args = content.substring(BOT_PREFIX.length).split(" ");
     const commandKey = args.shift();
